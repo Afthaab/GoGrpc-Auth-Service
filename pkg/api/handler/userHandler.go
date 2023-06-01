@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"github.com/auth/service/pkg/domain"
@@ -65,6 +66,31 @@ func (h *UserHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Logi
 	return &pb.LoginResponse{
 		Status:      http.StatusOK,
 		Accesstoken: accessToken,
+	}, nil
+
+}
+func (u *UserHandler) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb.ValidateResponse, error) {
+	userData := domain.User{}
+	ok, claims := u.JwtUseCase.VerifyToken(req.Accesstoken)
+	if !ok {
+		return &pb.ValidateResponse{
+			Status: http.StatusUnauthorized,
+			Error:  "Token Verification Failed",
+		}, errors.New("Token failed")
+	}
+	userData, err := u.UseCase.FindByUserEmail(claims.Email)
+	if err != nil {
+		return &pb.ValidateResponse{
+			Status: http.StatusUnauthorized,
+			Userid: int64(userData.Id),
+			Error:  "User not found with essesntial token credential",
+			Source: claims.Source,
+		}, err
+	}
+	return &pb.ValidateResponse{
+		Status: http.StatusOK,
+		Userid: int64(userData.Id),
+		Source: claims.Source,
 	}, nil
 
 }

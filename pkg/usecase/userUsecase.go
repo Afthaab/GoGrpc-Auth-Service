@@ -51,6 +51,12 @@ func (u *userUseCase) Login(user domain.User) (domain.User, error) {
 	return user, nil
 }
 
+func (u *userUseCase) FindByUserEmail(email string) (domain.User, error) {
+	user := domain.User{}
+	user, err := u.Repo.FindByUserEmail(email)
+	return user, err
+}
+
 func NewUserUseCase(repo repo.UserRepo) useCase.UserUseCase {
 	return &userUseCase{
 		Repo: repo,
