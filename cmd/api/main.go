@@ -1,11 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	config "github.com/auth/service/pkg/config"
-	db "github.com/auth/service/pkg/db"
+	di "github.com/auth/service/pkg/di"
 )
 
 func main() {
@@ -14,11 +13,10 @@ func main() {
 		log.Fatalln("Failed to load the Congiguration File: ", err)
 		return
 	}
-	DB, err := db.ConnectToDb(cfg)
+	server, err := di.InitApi(cfg)
 	if err != nil {
-		log.Fatalln("Failed to connect to the Database: ", err)
-		return
+		log.Fatalln("Error in initializing the api", err)
 	}
-	fmt.Println(DB)
+	server.Start()
 
 }
