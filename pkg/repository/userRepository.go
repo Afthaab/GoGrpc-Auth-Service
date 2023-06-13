@@ -2,6 +2,7 @@ package repository
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/auth/service/pkg/domain"
 	repo "github.com/auth/service/pkg/repository/interface"
@@ -13,26 +14,38 @@ type userDatabase struct {
 }
 
 func (r *userDatabase) FindUser(user domain.User) (int, error) {
-	dbErr := r.DB.Raw("select * from users where username LIKE ?", user.Username).Error
-	// dbErr := r.DB.Where("where username = ?", user.Username).First(&user).Error
-	if dbErr != nil {
-		return 0, errors.New("Username Already exists")
+	result := r.DB.First(&user, "username LIKE ?", user.Username).RowsAffected
+	if result != 0 {
+		return 0, errors.New("Username Already Exists !")
 	}
-	dbErr = r.DB.Raw("select * from users where email LIKE ?", user.Email).Error
-	// dbErr = r.DB.Where("where email = ?", user.Email).First(&user).Error
-	if dbErr != nil {
-		return 0, errors.New("email Already exists")
+	result = r.DB.First(&user, "email LIKE ?", user.Email).RowsAffected
+	if result != 0 {
+		return 0, errors.New("Email Already Exists !")
 	}
-	if dbErr == gorm.ErrRecordNotFound {
-		return 0, nil
-	}
-	return int(user.Id), dbErr
-
+	return int(user.Id), nil
 }
 
 func (r *userDatabase) Create(user domain.User) (int, error) {
 	result := r.DB.Create(&user)
 	return int(user.Id), result.Error
+}
+
+func (r *userDatabase) FindUserByOtp(user domain.User) (domain.User, error) {
+	result := r.DB.Where("otp LIKE ?", user.Otp).First(&user)
+	if result.Error != nil {
+		return user, errors.New("Wrong OTP Entered")
+	}
+	return user, nil
+}
+
+func (r *userDatabase) NullTheOtp(user domain.User) (int, error) {
+	var userData domain.User
+	result := r.DB.Model(&userData).Where("id = ?", user.Id).Update("otp", nil)
+	fmt.Println(result.RowsAffected)
+	if result.RowsAffected != 0 {
+		return int(user.Id), nil
+	}
+	return int(userData.Id), errors.New("Could not delete the otp")
 }
 
 func (r *userDatabase) FindByUserName(name string) (domain.User, error) {

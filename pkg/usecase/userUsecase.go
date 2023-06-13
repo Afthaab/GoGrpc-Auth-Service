@@ -14,13 +14,26 @@ type userUseCase struct {
 }
 
 func (u *userUseCase) Register(user domain.User) (int, error) {
-	var id int
-	var err error
-	id, err = u.Repo.FindUser(user)
+	// Validating the JSON using Validator Pacakge
+	validationErr := utility.ValidateUser(user)
+	if validationErr != nil {
+		return 0, validationErr
+	}
+
+	// Searching in Database for Existing User Credentials
+	id, err := u.Repo.FindUser(user)
 	if err != nil {
 		return id, err
 	}
+
+	// Generating OTP for the User
+	otp := utility.Otpgeneration(user.Email)
+	user.Otp = otp
+
+	// Hashing the Password
 	user.Password = utility.HashPassword(user.Password)
+
+	// Creating the user
 	id, err = u.Repo.Create(user)
 	if err != nil {
 		return id, err
@@ -28,6 +41,23 @@ func (u *userUseCase) Register(user domain.User) (int, error) {
 	return id, nil
 
 }
+
+func (u *userUseCase) RegisterValidate(user domain.User) (int, error) {
+	// searching for the user with otp
+	user, err := u.Repo.FindUserByOtp(user)
+	if err != nil {
+		return int(user.Id), err
+	}
+
+	// Null the otp field
+	id, err := u.Repo.NullTheOtp(user)
+	if err != nil {
+		return id, err
+	}
+	return id, nil
+
+}
+
 func (u *userUseCase) Login(user domain.User) (domain.User, error) {
 	if user.Username != "" {
 		userDetails, err := u.Repo.FindByUserName(user.Username)

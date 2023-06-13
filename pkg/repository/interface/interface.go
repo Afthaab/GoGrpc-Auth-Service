@@ -7,4 +7,6 @@ type UserRepo interface {
 	Create(user domain.User) (int, error)
 	FindByUserName(name string) (domain.User, error)
 	FindByUserEmail(email string) (domain.User, error)
+	FindUserByOtp(user domain.User) (domain.User, error)
+	NullTheOtp(user domain.User) (int, error)
 }

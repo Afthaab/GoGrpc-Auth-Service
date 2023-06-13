@@ -1,7 +1,10 @@
 package config
 
 import (
+	"log"
+
 	validator "github.com/go-playground/validator"
+	"github.com/joho/godotenv"
 	viper "github.com/spf13/viper"
 )
 
@@ -32,7 +35,15 @@ func LoadConfig() (Config, error) {
 	if err := validator.New().Struct(&cfg); err != nil {
 		return cfg, err
 	}
+	LoadEnv()
 
 	return cfg, cfgerr
 
+}
+
+func LoadEnv() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading Env File")
+	}
 }

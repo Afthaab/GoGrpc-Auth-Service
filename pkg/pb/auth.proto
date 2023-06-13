@@ -6,6 +6,7 @@ option go_package = "./pkg/pb";
 
 service AuthService {
   rpc Register(RegisterRequest) returns (RegisterResponse) {}
+  rpc RegisterValidate(RegisterValidateRequest) returns (RegisterValidateResponse) {}
   rpc Login(LoginRequest) returns (LoginResponse) {}
   rpc Validate(ValidateRequest) returns (ValidateResponse) {}
 }
@@ -22,6 +23,17 @@ message RegisterRequest {
     int64 status = 1;
     string error = 2;
   }
+
+// Register Validate
+
+message RegisterValidateRequest{
+  string otp =1;
+}
+
+message RegisterValidateResponse{
+  int64 status = 1;
+  string error = 2;
+}
 
 // Login
 

@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/auth/service/pkg/domain"
@@ -39,6 +40,25 @@ func (h *UserHandler) Register(ctx context.Context, req *pb.RegisterRequest) (*p
 		Status: http.StatusOK,
 		Error:  "nil",
 	}, nil
+}
+
+func (h *UserHandler) RegisterValidate(ctx context.Context, req *pb.RegisterValidateRequest) (*pb.RegisterValidateResponse, error) {
+	user := domain.User{
+		Otp: req.Otp,
+	}
+	_, err := h.UseCase.RegisterValidate(user)
+	fmt.Println(err, "+++++++++++++++++++++")
+	if err != nil {
+		return &pb.RegisterValidateResponse{
+			Status: http.StatusNotFound,
+			Error:  "Error",
+		}, err
+	}
+	return &pb.RegisterValidateResponse{
+		Status: http.StatusOK,
+		Error:  "nil",
+	}, nil
+
 }
 
 func (h *UserHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
