@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/auth/service/pkg/domain"
@@ -29,7 +28,7 @@ func (h *UserHandler) Register(ctx context.Context, req *pb.RegisterRequest) (*p
 		Email:    req.Email,
 		Password: req.Password,
 	}
-	_, err := h.UseCase.Register(user)
+	err := h.UseCase.Register(user)
 	if err != nil {
 		return &pb.RegisterResponse{
 			Status: http.StatusUnprocessableEntity,
@@ -46,8 +45,7 @@ func (h *UserHandler) RegisterValidate(ctx context.Context, req *pb.RegisterVali
 	user := domain.User{
 		Otp: req.Otp,
 	}
-	_, err := h.UseCase.RegisterValidate(user)
-	fmt.Println(err, "+++++++++++++++++++++")
+	err := h.UseCase.RegisterValidate(user)
 	if err != nil {
 		return &pb.RegisterValidateResponse{
 			Status: http.StatusNotFound,
@@ -70,8 +68,8 @@ func (h *UserHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Logi
 	userDetails, err := h.UseCase.Login(user)
 	if err != nil {
 		return &pb.LoginResponse{
-			Status: http.StatusUnprocessableEntity,
-			Error:  "Error in Database",
+			Status: http.StatusNotFound,
+			Error:  "Error in logging the user",
 		}, err
 	}
 
@@ -89,6 +87,7 @@ func (h *UserHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Logi
 	}, nil
 
 }
+
 func (u *UserHandler) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb.ValidateResponse, error) {
 	userData := domain.User{}
 	ok, claims := u.JwtUseCase.VerifyToken(req.Accesstoken)
@@ -98,7 +97,7 @@ func (u *UserHandler) Validate(ctx context.Context, req *pb.ValidateRequest) (*p
 			Error:  "Token Verification Failed",
 		}, errors.New("Token failed")
 	}
-	userData, err := u.UseCase.FindByUserEmail(claims.Email)
+	userData, err := u.UseCase.FindUserByID(claims.Userid)
 	if err != nil {
 		return &pb.ValidateResponse{
 			Status: http.StatusUnauthorized,

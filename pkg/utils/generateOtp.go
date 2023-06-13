@@ -23,8 +23,6 @@ func GenCaptchaCode() (string, error) {
 }
 
 func Otpgeneration(emails string) string {
-	fmt.Println(emails)
-	fmt.Println(os.Getenv("EMAIL"))
 	m := gomail.NewMessage()
 
 	// Set E-Mail sender

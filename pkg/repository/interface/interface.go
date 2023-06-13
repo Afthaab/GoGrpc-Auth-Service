@@ -3,10 +3,10 @@ package interfaces
 import "github.com/auth/service/pkg/domain"
 
 type UserRepo interface {
-	FindUser(user domain.User) (int, error)
-	Create(user domain.User) (int, error)
-	FindByUserName(name string) (domain.User, error)
-	FindByUserEmail(email string) (domain.User, error)
+	Create(user domain.User) error
+	FindByUserName(user domain.User) (domain.User, error)
+	FindByUserEmail(user domain.User) (domain.User, error)
 	FindUserByOtp(user domain.User) (domain.User, error)
-	NullTheOtp(user domain.User) (int, error)
+	NullTheOtp(user domain.User) int64
+	FindUserById(userid uint) (domain.User, error)
 }

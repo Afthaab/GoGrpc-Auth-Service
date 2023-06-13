@@ -13,17 +13,21 @@ type userUseCase struct {
 	Repo repo.UserRepo
 }
 
-func (u *userUseCase) Register(user domain.User) (int, error) {
+func (u *userUseCase) Register(user domain.User) error {
 	// Validating the JSON using Validator Pacakge
 	validationErr := utility.ValidateUser(user)
 	if validationErr != nil {
-		return 0, validationErr
+		return validationErr
 	}
 
 	// Searching in Database for Existing User Credentials
-	id, err := u.Repo.FindUser(user)
-	if err != nil {
-		return id, err
+	_, err := u.Repo.FindByUserEmail(user)
+	if err == nil {
+		return errors.New("Email Address already exists")
+	}
+	_, err = u.Repo.FindByUserName(user)
+	if err == nil {
+		return errors.New("Username Already exists")
 	}
 
 	// Generating OTP for the User
@@ -34,44 +38,44 @@ func (u *userUseCase) Register(user domain.User) (int, error) {
 	user.Password = utility.HashPassword(user.Password)
 
 	// Creating the user
-	id, err = u.Repo.Create(user)
+	err = u.Repo.Create(user)
 	if err != nil {
-		return id, err
+		return err
 	}
-	return id, nil
+	return nil
 
 }
 
-func (u *userUseCase) RegisterValidate(user domain.User) (int, error) {
+func (u *userUseCase) RegisterValidate(user domain.User) error {
 	// searching for the user with otp
 	user, err := u.Repo.FindUserByOtp(user)
 	if err != nil {
-		return int(user.Id), err
+		return errors.New("Entered wrong OTP")
 	}
 
 	// Null the otp field
-	id, err := u.Repo.NullTheOtp(user)
-	if err != nil {
-		return id, err
+	rows := u.Repo.NullTheOtp(user)
+	if rows == 0 {
+		return errors.New("Could not update the OTP")
 	}
-	return id, nil
+	return nil
 
 }
 
 func (u *userUseCase) Login(user domain.User) (domain.User, error) {
-	if user.Username != "" {
-		userDetails, err := u.Repo.FindByUserName(user.Username)
+	if user.Username != "" { // check the user in the database through username
+		userDetails, err := u.Repo.FindByUserName(user)
 		if err != nil {
-			return userDetails, errors.New("Could not find the user")
+			return userDetails, errors.New("User not found")
 		}
 		if !utility.VerifyPassword(user.Password, userDetails.Password) {
 			return userDetails, errors.New("Password in worng or did not match")
 		}
 		return userDetails, nil
-	} else if user.Email != "" {
-		userDetails, err := u.Repo.FindByUserEmail(user.Email)
+	} else if user.Email != "" { // check the user in the database through email
+		userDetails, err := u.Repo.FindByUserEmail(user)
 		if err != nil {
-			return userDetails, errors.New("Could not find the user")
+			return userDetails, errors.New("User not found")
 		}
 		if !utility.VerifyPassword(user.Password, userDetails.Password) {
 			return userDetails, errors.New("Password in worng or did not match")
@@ -81,10 +85,12 @@ func (u *userUseCase) Login(user domain.User) (domain.User, error) {
 	return user, nil
 }
 
-func (u *userUseCase) FindByUserEmail(email string) (domain.User, error) {
-	user := domain.User{}
-	user, err := u.Repo.FindByUserEmail(email)
-	return user, err
+func (u *userUseCase) FindUserByID(userid uint) (domain.User, error) {
+	user, err := u.Repo.FindUserById(userid)
+	if err != nil {
+		return user, errors.New("Unauthorized User")
+	}
+	return user, nil
 }
 
 func NewUserUseCase(repo repo.UserRepo) useCase.UserUseCase {
