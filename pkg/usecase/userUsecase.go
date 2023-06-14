@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"errors"
-	"fmt"
 
 	domain "github.com/auth/service/pkg/domain"
 	repo "github.com/auth/service/pkg/repository/interface"
@@ -79,17 +78,15 @@ func (u *userUseCase) Login(user domain.User) (domain.User, error) {
 			return userDetails, errors.New("User not found")
 		}
 
-		fmt.Println("----------------------------------------")
 		// Deleting the User if he already exits but not verfied
-		oldOtp := u.Repo.IsOtpVerified(user.Username)
+		oldOtp := u.Repo.IsOtpVerified(userDetails.Username)
 		if !utility.CheckOtpVerified(oldOtp) {
-			fmt.Println("++++++++++++++++++++++++++++++++++++++")
-			errs := u.Repo.DeleteUser(user)
+			errs := u.Repo.DeleteUser(userDetails)
 			if errs != nil {
-				return userDetails, errors.New("User not verified, Please register again")
+				return userDetails, errors.New("Could not delete unethenticated user")
 			}
+			return userDetails, errors.New("User not verified, Please register again")
 		}
-		fmt.Println("----------------------------------------")
 
 		// checking the hashed password
 		if !utility.VerifyPassword(user.Password, userDetails.Password) {
@@ -104,12 +101,13 @@ func (u *userUseCase) Login(user domain.User) (domain.User, error) {
 		}
 
 		// Deleting the User if he already exits but not verfied
-		oldOtp := u.Repo.IsOtpVerified(user.Username)
+		oldOtp := u.Repo.IsOtpVerified(userDetails.Username)
 		if !utility.CheckOtpVerified(oldOtp) {
-			errs := u.Repo.DeleteUser(user)
+			errs := u.Repo.DeleteUser(userDetails)
 			if errs != nil {
-				return userDetails, errors.New("User not verified, Please register again")
+				return userDetails, errors.New("Could not delete unethenticated user")
 			}
+			return userDetails, errors.New("User not verified, Please register again")
 		}
 
 		// checking the hashed password

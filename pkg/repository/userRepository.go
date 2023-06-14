@@ -47,17 +47,12 @@ func (r *userDatabase) FindUserById(userid uint) (domain.User, error) {
 func (r *userDatabase) IsOtpVerified(username string) string {
 	var otp string
 	r.DB.Raw("select otp from users where username LIKE ?", username).Scan(&otp)
-	fmt.Println("===========================", otp)
 	return otp
 }
 
 func (r *userDatabase) DeleteUser(user domain.User) error {
-	// var userr domain.User
-	// result := r.DB.Where("email LIKE ?", user.Email).Delete(&userr).Error
-	// fmt.Println("///////////////////////////////", result)
-	// return result
+	fmt.Println(user.Email)
 	result := r.DB.Exec("DELETE FROM users WHERE email LIKE ?", user.Email).Error
-	fmt.Println("///////////////////////////////", result)
 	return result
 
 }
