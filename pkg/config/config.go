@@ -40,7 +40,6 @@ func LoadConfig() (Config, error) {
 	return cfg, cfgerr
 
 }
-
 func LoadEnv() {
 	err := godotenv.Load()
 	if err != nil {

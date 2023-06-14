@@ -20,7 +20,6 @@ func NewGrpcServer(userHandler *handler.UserHandler, grpcPort string) {
 	if err != nil {
 		log.Fatalln("Failed to listen to the GRPC Port", err)
 	}
-
 	//create a new grpc server
 	grpcServer := grpc.NewServer()
 

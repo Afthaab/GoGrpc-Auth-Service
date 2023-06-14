@@ -1,0 +1,51 @@
+version: "3"
+services:
+  db:
+    image: postgres
+    container_name: db
+    restart: always
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "12345"
+      POSTGRES_DB: "microsvc"
+    ports:
+      - "5433:5432"
+    networks:
+      - servicenetwork
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+  
+  api:
+    build: .
+    image: afthab2015/microservice:v2
+    container_name: apigateway
+    ports:
+      - "8000:8000"
+    restart: always
+    networks:
+      - servicenetwork
+
+  app:
+    build: .
+    image: afthab2015/microservice:v1
+    container_name: application 
+    ports:
+      - "7777:7777"
+    restart: always
+    depends_on:
+      - db
+      - api
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "12345"
+      POSTGRES_DB: "microsvc"
+      POSTGRES_HOST: "db"
+    networks:
+      - servicenetwork
+
+volumes:
+  dbdata:
+
+networks:
+  servicenetwork:
+    driver: bridge

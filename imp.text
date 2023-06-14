@@ -1,0 +1,8 @@
+docker run --name mysql --network post-network -e POSTGRES_PASSWORD=12345 -d postgres
+
+docker run -it --rm --network post-network postgres psql -h mysql -U postgres
+
+changed db to localhost
+
+sudo killall containerd-shim
+
