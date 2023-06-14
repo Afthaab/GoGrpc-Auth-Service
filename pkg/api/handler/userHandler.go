@@ -27,6 +27,7 @@ func (h *UserHandler) Register(ctx context.Context, req *pb.RegisterRequest) (*p
 		Username: req.Username,
 		Email:    req.Email,
 		Password: req.Password,
+		Phone:    req.Phone,
 	}
 	err := h.UseCase.Register(user)
 	if err != nil {

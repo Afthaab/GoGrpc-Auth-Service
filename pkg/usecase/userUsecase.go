@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"errors"
+	"fmt"
 
 	domain "github.com/auth/service/pkg/domain"
 	repo "github.com/auth/service/pkg/repository/interface"
@@ -18,6 +19,15 @@ func (u *userUseCase) Register(user domain.User) error {
 	validationErr := utility.ValidateUser(user)
 	if validationErr != nil {
 		return validationErr
+	}
+
+	// Deleting the User if he already exits but not verfied
+	oldOtp := u.Repo.IsOtpVerified(user.Username)
+	if !utility.CheckOtpVerified(oldOtp) {
+		errs := u.Repo.DeleteUser(user)
+		if errs != nil {
+			return errors.New("Could not delete unethenticated user")
+		}
 	}
 
 	// Searching in Database for Existing User Credentials
@@ -68,15 +78,41 @@ func (u *userUseCase) Login(user domain.User) (domain.User, error) {
 		if err != nil {
 			return userDetails, errors.New("User not found")
 		}
+
+		fmt.Println("----------------------------------------")
+		// Deleting the User if he already exits but not verfied
+		oldOtp := u.Repo.IsOtpVerified(user.Username)
+		if !utility.CheckOtpVerified(oldOtp) {
+			fmt.Println("++++++++++++++++++++++++++++++++++++++")
+			errs := u.Repo.DeleteUser(user)
+			if errs != nil {
+				return userDetails, errors.New("User not verified, Please register again")
+			}
+		}
+		fmt.Println("----------------------------------------")
+
+		// checking the hashed password
 		if !utility.VerifyPassword(user.Password, userDetails.Password) {
 			return userDetails, errors.New("Password in worng or did not match")
 		}
 		return userDetails, nil
+
 	} else if user.Email != "" { // check the user in the database through email
 		userDetails, err := u.Repo.FindByUserEmail(user)
 		if err != nil {
 			return userDetails, errors.New("User not found")
 		}
+
+		// Deleting the User if he already exits but not verfied
+		oldOtp := u.Repo.IsOtpVerified(user.Username)
+		if !utility.CheckOtpVerified(oldOtp) {
+			errs := u.Repo.DeleteUser(user)
+			if errs != nil {
+				return userDetails, errors.New("User not verified, Please register again")
+			}
+		}
+
+		// checking the hashed password
 		if !utility.VerifyPassword(user.Password, userDetails.Password) {
 			return userDetails, errors.New("Password in worng or did not match")
 		}

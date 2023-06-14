@@ -28,6 +28,8 @@ func ValidateUser(user domain.User) error {
 			case "Password":
 				errorMessages[i] = "Invalid password, Minimum 8 letters or Maximum 16 letters required"
 				break
+			case "Phone":
+				errorMessages[i] = "Invalid Phone Number"
 			default:
 				errorMessages[i] = "Validation failed"
 			}

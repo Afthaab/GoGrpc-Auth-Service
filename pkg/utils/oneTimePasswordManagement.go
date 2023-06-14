@@ -60,3 +60,11 @@ func Otpgeneration(emails string) string {
 	return onetimepassword
 
 }
+
+func CheckOtpVerified(otp string) bool {
+	if otp == "" {
+		return true
+	} else {
+		return false
+	}
+}
