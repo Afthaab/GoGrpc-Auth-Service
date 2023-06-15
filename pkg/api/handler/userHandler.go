@@ -22,6 +22,9 @@ func NewUserHandler(useCase useCase.UserUseCase, jwtUseCase useCase.JwtUseCase) 
 		JwtUseCase: jwtUseCase,
 	}
 }
+
+// ------------------------------------- User Authentication ---------------------------------------------
+
 func (h *UserHandler) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
 	user := domain.User{
 		Username: req.Username,
@@ -89,6 +92,8 @@ func (h *UserHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Logi
 
 }
 
+// -------------------------------------- Jwt Validation ---------------------------------------------
+
 func (u *UserHandler) Validate(ctx context.Context, req *pb.ValidateRequest) (*pb.ValidateResponse, error) {
 	userData := domain.User{}
 	ok, claims := u.JwtUseCase.VerifyToken(req.Accesstoken)
@@ -98,7 +103,7 @@ func (u *UserHandler) Validate(ctx context.Context, req *pb.ValidateRequest) (*p
 			Error:  "Token Verification Failed",
 		}, errors.New("Token failed")
 	}
-	userData, err := u.UseCase.FindUserByID(claims.Userid)
+	userData, err := u.UseCase.ValidateJwtUser(claims.Userid)
 	if err != nil {
 		return &pb.ValidateResponse{
 			Status: http.StatusUnauthorized,
@@ -111,6 +116,35 @@ func (u *UserHandler) Validate(ctx context.Context, req *pb.ValidateRequest) (*p
 		Status: http.StatusOK,
 		Userid: int64(userData.Id),
 		Source: claims.Source,
+	}, nil
+
+}
+
+// ------------------------------------- Amdmin Authentication --------------------------------------------
+
+func (h *UserHandler) AdminLogin(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
+	user := domain.User{
+		Username: req.Username,
+		Password: req.Password,
+	}
+	userData, err := h.UseCase.AdminLogin(user)
+	if err != nil {
+		return &pb.LoginResponse{
+			Status: http.StatusNotFound,
+			Error:  "Error in Admin Login",
+		}, err
+	}
+	accessToken, err := h.JwtUseCase.GenerateAccessToken(int(userData.Id), userData.Email, "admin")
+	if err != nil {
+		return &pb.LoginResponse{
+			Status: http.StatusUnprocessableEntity,
+			Error:  "Error in Generating JWT token",
+		}, err
+	}
+
+	return &pb.LoginResponse{
+		Status:      http.StatusOK,
+		Accesstoken: accessToken,
 	}, nil
 
 }

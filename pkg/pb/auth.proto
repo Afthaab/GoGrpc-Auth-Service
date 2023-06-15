@@ -9,6 +9,7 @@ service AuthService {
   rpc RegisterValidate(RegisterValidateRequest) returns (RegisterValidateResponse) {}
   rpc Login(LoginRequest) returns (LoginResponse) {}
   rpc Validate(ValidateRequest) returns (ValidateResponse) {}
+  rpc AdminLogin(LoginRequest) returns (LoginResponse) {}
 }
 
 // Register

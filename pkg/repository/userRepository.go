@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"fmt"
-
 	"github.com/auth/service/pkg/domain"
 	repo "github.com/auth/service/pkg/repository/interface"
 	"gorm.io/gorm"
@@ -51,10 +49,8 @@ func (r *userDatabase) IsOtpVerified(username string) string {
 }
 
 func (r *userDatabase) DeleteUser(user domain.User) error {
-	fmt.Println(user.Email)
 	result := r.DB.Exec("DELETE FROM users WHERE email LIKE ?", user.Email).Error
 	return result
-
 }
 
 func NewUserRepo(db *gorm.DB) repo.UserRepo {

@@ -7,4 +7,5 @@ type User struct {
 	Phone    string `json:"phone" validate:"required,len=10"`
 	Email    string `json:"email" validate:"email,required"`
 	Otp      string `json:"otp"`
+	Isadmin  bool   `json:"isadmin" gorm:"default:false"`
 }

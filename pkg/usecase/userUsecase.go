@@ -13,6 +13,8 @@ type userUseCase struct {
 	Repo repo.UserRepo
 }
 
+// -------------------------- User Authentication -----------------------------
+
 func (u *userUseCase) Register(user domain.User) error {
 	// Validating the JSON using Validator Pacakge
 	validationErr := utility.ValidateUser(user)
@@ -119,10 +121,51 @@ func (u *userUseCase) Login(user domain.User) (domain.User, error) {
 	return user, nil
 }
 
-func (u *userUseCase) FindUserByID(userid uint) (domain.User, error) {
+// -------------------------- Jwt User Authentication -----------------------------
+
+func (u *userUseCase) ValidateJwtUser(userid uint) (domain.User, error) {
 	user, err := u.Repo.FindUserById(userid)
 	if err != nil {
 		return user, errors.New("Unauthorized User")
+	}
+	return user, nil
+}
+
+// -------------------------- Admin Authentication -----------------------------
+
+func (u *userUseCase) AdminLogin(user domain.User) (domain.User, error) {
+	if user.Username != "" {
+
+		// check the user in the database through username
+		userDetails, err := u.Repo.FindByUserName(user)
+		if err != nil {
+			return userDetails, errors.New("User not found")
+		}
+
+		// checking if the user has admin access
+		if userDetails.Isadmin == false {
+			return userDetails, errors.New("Admin access not found")
+		}
+
+		// checking the hashed password
+		if !utility.VerifyPassword(user.Password, userDetails.Password) {
+			return userDetails, errors.New("Password in worng or did not match")
+		}
+		return userDetails, nil
+
+	} else if user.Email != "" {
+
+		// check the user in the database through email
+		userDetails, err := u.Repo.FindByUserEmail(user)
+		if err != nil {
+			return userDetails, errors.New("User not found")
+		}
+
+		// checking the hashed password
+		if !utility.VerifyPassword(user.Password, userDetails.Password) {
+			return userDetails, errors.New("Password in worng or did not match")
+		}
+		return userDetails, nil
 	}
 	return user, nil
 }
