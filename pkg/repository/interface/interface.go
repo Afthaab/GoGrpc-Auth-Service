@@ -11,4 +11,6 @@ type UserRepo interface {
 	FindUserById(userid uint) (domain.User, error)
 	IsOtpVerified(username string) string
 	DeleteUser(user domain.User) error
+	UpdateOtp(user domain.User) error
+	VerifyUser(user domain.User) error
 }

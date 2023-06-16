@@ -89,6 +89,22 @@ func (h *UserHandler) Login(ctx context.Context, req *pb.LoginRequest) (*pb.Logi
 		Status:      http.StatusOK,
 		Accesstoken: accessToken,
 	}, nil
+}
+
+func (u *UserHandler) ForgotPassword(ctx context.Context, req *pb.ForgotPasswordRequest) (*pb.ForgotPasswordResponse, error) {
+	user := domain.User{
+		Email: req.Email,
+	}
+	err := u.UseCase.ForgotPassword(user)
+	if err != nil {
+		return &pb.ForgotPasswordResponse{
+			Status: http.StatusNotFound,
+			Error:  "Error in Forget Passsword",
+		}, err
+	}
+	return &pb.ForgotPasswordResponse{
+		Status: http.StatusOK,
+	}, nil
 
 }
 

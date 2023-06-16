@@ -53,6 +53,16 @@ func (r *userDatabase) DeleteUser(user domain.User) error {
 	return result
 }
 
+func (r *userDatabase) UpdateOtp(user domain.User) error {
+	result := r.DB.Model(&user).Where("id = ?", user.Id).Update("otp", user.Otp)
+	return result.Error
+}
+
+func (r *userDatabase) VerifyUser(user domain.User) error {
+	result := r.DB.Model(&user).Where("id = ?", user.Id).Update("isverified", true)
+	return result.Error
+}
+
 func NewUserRepo(db *gorm.DB) repo.UserRepo {
 	return &userDatabase{
 		DB: db,

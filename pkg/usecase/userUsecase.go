@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"errors"
+	"fmt"
 
 	domain "github.com/auth/service/pkg/domain"
 	repo "github.com/auth/service/pkg/repository/interface"
@@ -22,19 +23,19 @@ func (u *userUseCase) Register(user domain.User) error {
 		return validationErr
 	}
 
-	// Deleting the User if he already exits but not verfied
-	oldOtp := u.Repo.IsOtpVerified(user.Username)
-	if !utility.CheckOtpVerified(oldOtp) {
-		errs := u.Repo.DeleteUser(user)
-		if errs != nil {
-			return errors.New("Could not delete unethenticated user")
-		}
-	}
-
 	// Searching in Database for Existing User Credentials
-	_, err := u.Repo.FindByUserEmail(user)
+	userData, err := u.Repo.FindByUserEmail(user)
+
 	if err == nil {
-		return errors.New("Email Address already exists")
+		// Deleting the User if he already exits but not verfied
+		if userData.Isverified == false {
+			errs := u.Repo.DeleteUser(user)
+			if errs != nil {
+				return errors.New("Could not delete unethenticated user")
+			}
+		} else {
+			return errors.New("Email Address already exists")
+		}
 	}
 	_, err = u.Repo.FindByUserName(user)
 	if err == nil {
@@ -69,56 +70,67 @@ func (u *userUseCase) RegisterValidate(user domain.User) error {
 	if rows == 0 {
 		return errors.New("Could not update the OTP")
 	}
+
+	// User gets Verified
+	err = u.Repo.VerifyUser(user)
+	if err != nil {
+		return errors.New("Could not verifiy the user")
+	}
 	return nil
 
 }
 
 func (u *userUseCase) Login(user domain.User) (domain.User, error) {
+	var userDetails domain.User
+	var err error
 	if user.Username != "" { // check the user in the database through username
-		userDetails, err := u.Repo.FindByUserName(user)
+
+		userDetails, err = u.Repo.FindByUserName(user)
 		if err != nil {
 			return userDetails, errors.New("User not found")
 		}
-
-		// Deleting the User if he already exits but not verfied
-		oldOtp := u.Repo.IsOtpVerified(userDetails.Username)
-		if !utility.CheckOtpVerified(oldOtp) {
-			errs := u.Repo.DeleteUser(userDetails)
-			if errs != nil {
-				return userDetails, errors.New("Could not delete unethenticated user")
-			}
-			return userDetails, errors.New("User not verified, Please register again")
-		}
-
-		// checking the hashed password
-		if !utility.VerifyPassword(user.Password, userDetails.Password) {
-			return userDetails, errors.New("Password in worng or did not match")
-		}
-		return userDetails, nil
 
 	} else if user.Email != "" { // check the user in the database through email
-		userDetails, err := u.Repo.FindByUserEmail(user)
+
+		userDetails, err = u.Repo.FindByUserEmail(user)
 		if err != nil {
 			return userDetails, errors.New("User not found")
 		}
-
-		// Deleting the User if he already exits but not verfied
-		oldOtp := u.Repo.IsOtpVerified(userDetails.Username)
-		if !utility.CheckOtpVerified(oldOtp) {
-			errs := u.Repo.DeleteUser(userDetails)
-			if errs != nil {
-				return userDetails, errors.New("Could not delete unethenticated user")
-			}
-			return userDetails, errors.New("User not verified, Please register again")
-		}
-
-		// checking the hashed password
-		if !utility.VerifyPassword(user.Password, userDetails.Password) {
-			return userDetails, errors.New("Password in worng or did not match")
-		}
-		return userDetails, nil
 	}
-	return user, nil
+
+	// Deleting the User if he already exits but not verfied
+	fmt.Println(userDetails)
+	if userDetails.Isverified == false {
+		errs := u.Repo.DeleteUser(userDetails)
+		if errs != nil {
+			return userDetails, errors.New("Could not delete unethenticated user")
+		}
+		return userDetails, errors.New("User not Authenticated, Register again")
+	}
+
+	// checking the hashed password
+	if !utility.VerifyPassword(user.Password, userDetails.Password) {
+		return userDetails, errors.New("Password in worng or did not match")
+	}
+
+	return userDetails, nil
+}
+
+func (u *userUseCase) ForgotPassword(user domain.User) error {
+	user, err := u.Repo.FindByUserEmail(user)
+	if err != nil {
+		return errors.New("Email Address not found!")
+	}
+
+	// Generating OTP for the User
+	otp := utility.Otpgeneration(user.Email)
+	user.Otp = otp
+
+	err = u.Repo.UpdateOtp(user)
+	if err != nil {
+		return errors.New("Could not update the OTP")
+	}
+	return nil
 }
 
 // -------------------------- Jwt User Authentication -----------------------------
