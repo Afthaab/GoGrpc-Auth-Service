@@ -12,5 +12,6 @@ type UserRepo interface {
 	IsOtpVerified(username string) string
 	DeleteUser(user domain.User) error
 	UpdateOtp(user domain.User) error
-	VerifyUser(user domain.User) error
+	VerifyUser(user domain.User) (domain.User, error)
+	ChangePassword(user domain.User) error
 }

@@ -58,8 +58,13 @@ func (r *userDatabase) UpdateOtp(user domain.User) error {
 	return result.Error
 }
 
-func (r *userDatabase) VerifyUser(user domain.User) error {
+func (r *userDatabase) VerifyUser(user domain.User) (domain.User, error) {
 	result := r.DB.Model(&user).Where("id = ?", user.Id).Update("isverified", true)
+	return user, result.Error
+}
+
+func (r *userDatabase) ChangePassword(user domain.User) error {
+	result := r.DB.Model(&user).Where("id = ?", user.Id).Update("password", user.Password)
 	return result.Error
 }
 

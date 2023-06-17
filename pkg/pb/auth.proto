@@ -11,6 +11,7 @@ service AuthService {
   rpc Validate(ValidateRequest) returns (ValidateResponse) {}
   rpc AdminLogin(LoginRequest) returns (LoginResponse) {}
   rpc ForgotPassword(ForgotPasswordRequest) returns (ForgotPasswordResponse){}
+  rpc ChangePassword(ChangePasswordRequest) returns (ForgotPasswordResponse) {}
 }
 
 // Register
@@ -36,6 +37,7 @@ message RegisterValidateRequest{
 message RegisterValidateResponse{
   int64 status = 1;
   string error = 2;
+  int64 id = 3;
 }
 
 // Login
@@ -74,6 +76,13 @@ message ForgotPasswordRequest{
 message ForgotPasswordResponse{
   int64 status = 1;
   string error = 2;
+}
+
+// Change Password
+
+message ChangePasswordRequest{
+  int64  id = 1;
+  string password = 2;
 }
 
 // export PATH="$PATH:$(go env GOPATH)/bin"

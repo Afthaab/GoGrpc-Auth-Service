@@ -49,6 +49,9 @@ func (u *userUseCase) Register(user domain.User) error {
 	// Hashing the Password
 	user.Password = utility.HashPassword(user.Password)
 
+	// inserting avatar
+	user.Profile = "https://images-for-deliveryapp.s3.ap-south-1.amazonaws.com/5.jpg"
+
 	// Creating the user
 	err = u.Repo.Create(user)
 	if err != nil {
@@ -58,25 +61,25 @@ func (u *userUseCase) Register(user domain.User) error {
 
 }
 
-func (u *userUseCase) RegisterValidate(user domain.User) error {
+func (u *userUseCase) RegisterValidate(user domain.User) (domain.User, error) {
 	// searching for the user with otp
 	user, err := u.Repo.FindUserByOtp(user)
 	if err != nil {
-		return errors.New("Entered wrong OTP")
+		return user, errors.New("Entered wrong OTP")
 	}
 
 	// Null the otp field
 	rows := u.Repo.NullTheOtp(user)
 	if rows == 0 {
-		return errors.New("Could not update the OTP")
+		return user, errors.New("Could not update the OTP")
 	}
 
 	// User gets Verified
-	err = u.Repo.VerifyUser(user)
+	user, err = u.Repo.VerifyUser(user)
 	if err != nil {
-		return errors.New("Could not verifiy the user")
+		return user, errors.New("Could not verifiy the user")
 	}
-	return nil
+	return user, nil
 
 }
 
@@ -129,6 +132,16 @@ func (u *userUseCase) ForgotPassword(user domain.User) error {
 	err = u.Repo.UpdateOtp(user)
 	if err != nil {
 		return errors.New("Could not update the OTP")
+	}
+	return nil
+}
+
+func (u *userUseCase) ChangePassword(user domain.User) error {
+	// Hashing the Password
+	user.Password = utility.HashPassword(user.Password)
+	err := u.Repo.ChangePassword(user)
+	if err != nil {
+		return errors.New("Could not change the password")
 	}
 	return nil
 }

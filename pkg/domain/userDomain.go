@@ -9,4 +9,5 @@ type User struct {
 	Otp        string `json:"otp"`
 	Isverified bool   `json:"isverified" gorm:"default:false"`
 	Isadmin    bool   `json:"isadmin" gorm:"default:false"`
+	Profile    string `json:"profile"`
 }

@@ -49,16 +49,18 @@ func (h *UserHandler) RegisterValidate(ctx context.Context, req *pb.RegisterVali
 	user := domain.User{
 		Otp: req.Otp,
 	}
-	err := h.UseCase.RegisterValidate(user)
+	user, err := h.UseCase.RegisterValidate(user)
 	if err != nil {
 		return &pb.RegisterValidateResponse{
 			Status: http.StatusNotFound,
 			Error:  "Error",
+			Id:     int64(user.Id),
 		}, err
 	}
 	return &pb.RegisterValidateResponse{
 		Status: http.StatusOK,
 		Error:  "nil",
+		Id:     int64(user.Id),
 	}, nil
 
 }
@@ -106,6 +108,22 @@ func (u *UserHandler) ForgotPassword(ctx context.Context, req *pb.ForgotPassword
 		Status: http.StatusOK,
 	}, nil
 
+}
+func (u *UserHandler) ChangePassword(ctx context.Context, req *pb.ChangePasswordRequest) (*pb.ForgotPasswordResponse, error) {
+	user := domain.User{
+		Id:       uint(req.Id),
+		Password: req.Password,
+	}
+	err := u.UseCase.ChangePassword(user)
+	if err != nil {
+		return &pb.ForgotPasswordResponse{
+			Status: http.StatusNotFound,
+			Error:  "Error in changing the password",
+		}, err
+	}
+	return &pb.ForgotPasswordResponse{
+		Status: http.StatusOK,
+	}, nil
 }
 
 // -------------------------------------- Jwt Validation ---------------------------------------------
