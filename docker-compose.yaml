@@ -1,7 +1,7 @@
 version: "3"
 services:
   db:
-    image: postgres
+    image: postgres:latest
     container_name: db
     restart: always
     environment:
@@ -14,20 +14,10 @@ services:
       - servicenetwork
     volumes:
       - dbdata:/var/lib/postgresql/data
-  
-  api:
-    build: .
-    image: afthab2015/microservice:v2
-    container_name: apigateway
-    ports:
-      - "8000:8000"
-    restart: always
-    networks:
-      - servicenetwork
 
   app:
     build: .
-    image: afthab2015/microservice:v1
+    image: authsvc:latest
     container_name: application 
     ports:
       - "7777:7777"
@@ -40,6 +30,16 @@ services:
       POSTGRES_PASSWORD: "12345"
       POSTGRES_DB: "microsvc"
       POSTGRES_HOST: "db"
+    networks:
+      - servicenetwork
+  
+  api:
+    build: .
+    image: apigateway:latest
+    container_name: apigate 
+    ports:
+      - "8000:8000"
+    restart: always
     networks:
       - servicenetwork
 

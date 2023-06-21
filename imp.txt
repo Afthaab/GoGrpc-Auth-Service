@@ -6,3 +6,15 @@ changed db to localhost
 
 sudo killall containerd-shim
 
+
+ api:
+    build: .
+    image: apigateway:latest
+    container_name: apigate 
+    ports:
+      - "8000:8000"
+    restart: always
+    networks:
+      - servicenetwork
+
+docker exec -it db psql -U postgres

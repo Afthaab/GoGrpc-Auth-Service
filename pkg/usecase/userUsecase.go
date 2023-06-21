@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"errors"
-	"fmt"
 
 	domain "github.com/auth/service/pkg/domain"
 	repo "github.com/auth/service/pkg/repository/interface"
@@ -102,7 +101,6 @@ func (u *userUseCase) Login(user domain.User) (domain.User, error) {
 	}
 
 	// Deleting the User if he already exits but not verfied
-	fmt.Println(userDetails)
 	if userDetails.Isverified == false {
 		errs := u.Repo.DeleteUser(userDetails)
 		if errs != nil {
