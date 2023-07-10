@@ -20,7 +20,7 @@ func (u *jwtUseCase) GenerateAccessToken(userid int, email string, role string) 
 		Email:  email,
 		Source: "AccessToken",
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Local().Add(time.Minute * time.Duration(500)).Unix(),
+			ExpiresAt: time.Now().Local().AddDate(1, 0, 0).Unix(),
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

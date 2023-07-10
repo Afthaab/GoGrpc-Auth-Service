@@ -30,7 +30,7 @@ func (u *userUseCase) Register(user domain.User) error {
 		if userData.Isverified == false {
 			errs := u.Repo.DeleteUser(user)
 			if errs != nil {
-				return errors.New("Could not delete unethenticated user")
+				return errors.New("Could not delete unauthenticated User")
 			}
 		} else {
 			return errors.New("Email Address already exists")
@@ -40,7 +40,10 @@ func (u *userUseCase) Register(user domain.User) error {
 	if err == nil {
 		return errors.New("Username Already exists")
 	}
-
+	_, err = u.Repo.FindByPhone(user)
+	if err == nil {
+		return errors.New("Phone number already in use")
+	}
 	// Generating OTP for the User
 	otp := utility.Otpgeneration(user.Email)
 	user.Otp = otp
@@ -49,7 +52,7 @@ func (u *userUseCase) Register(user domain.User) error {
 	user.Password = utility.HashPassword(user.Password)
 
 	// inserting avatar
-	user.Profile = "https://images-for-deliveryapp.s3.ap-south-1.amazonaws.com/5.jpg"
+	user.Profile = "https://images-for-deliveryapp.s3.ap-south-1.amazonaws.com/avatar-ge80dc2e76_1920.png"
 
 	// Creating the user
 	err = u.Repo.Create(user)
@@ -62,7 +65,7 @@ func (u *userUseCase) Register(user domain.User) error {
 
 func (u *userUseCase) RegisterValidate(user domain.User) (domain.User, error) {
 	// searching for the user with otp
-	user, err := u.Repo.FindUserByOtp(user)
+	user, err := u.Repo.FindUserByOtpAndEmail(user)
 	if err != nil {
 		return user, errors.New("Entered wrong OTP")
 	}
@@ -137,8 +140,8 @@ func (u *userUseCase) ForgotPassword(user domain.User) error {
 func (u *userUseCase) ChangePassword(user domain.User) error {
 	// Hashing the Password
 	user.Password = utility.HashPassword(user.Password)
-	err := u.Repo.ChangePassword(user)
-	if err != nil {
+	result := u.Repo.ChangePassword(user)
+	if result == 0 {
 		return errors.New("Could not change the password")
 	}
 	return nil

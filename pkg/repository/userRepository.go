@@ -13,8 +13,14 @@ type userDatabase struct {
 func (r *userDatabase) FindByUserName(user domain.User) (domain.User, error) {
 	result := r.DB.First(&user, "username LIKE ?", user.Username).Error
 	return user, result
+}
+
+func (r *userDatabase) FindByPhone(user domain.User) (domain.User, error) {
+	result := r.DB.First(&user, "phone LIKE ?", user.Phone).Error
+	return user, result
 
 }
+
 func (r *userDatabase) FindByUserEmail(user domain.User) (domain.User, error) {
 	result := r.DB.First(&user, "email LIKE ?", user.Email).Error
 	return user, result
@@ -25,8 +31,8 @@ func (r *userDatabase) Create(user domain.User) error {
 	return result
 }
 
-func (r *userDatabase) FindUserByOtp(user domain.User) (domain.User, error) {
-	result := r.DB.Where("otp LIKE ?", user.Otp).First(&user)
+func (r *userDatabase) FindUserByOtpAndEmail(user domain.User) (domain.User, error) {
+	result := r.DB.Where("otp LIKE ? and email LIKE ?", user.Otp, user.Email).First(&user)
 	return user, result.Error
 }
 
@@ -63,9 +69,9 @@ func (r *userDatabase) VerifyUser(user domain.User) (domain.User, error) {
 	return user, result.Error
 }
 
-func (r *userDatabase) ChangePassword(user domain.User) error {
-	result := r.DB.Model(&user).Where("id = ?", user.Id).Update("password", user.Password)
-	return result.Error
+func (r *userDatabase) ChangePassword(user domain.User) int64 {
+	result := r.DB.Model(&user).Where("email LIKE ?", user.Email).Update("password", user.Password)
+	return result.RowsAffected
 }
 
 func NewUserRepo(db *gorm.DB) repo.UserRepo {
