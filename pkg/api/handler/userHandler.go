@@ -35,8 +35,8 @@ func (h *UserHandler) Register(ctx context.Context, req *pb.RegisterRequest) (*p
 	err := h.UseCase.Register(user)
 	if err != nil {
 		return &pb.RegisterResponse{
-			Status: http.StatusUnprocessableEntity,
-			Error:  "Error",
+			Status: http.StatusUnauthorized,
+			Error:  "Error in Registering the user",
 		}, err
 	}
 	return &pb.RegisterResponse{
@@ -47,7 +47,8 @@ func (h *UserHandler) Register(ctx context.Context, req *pb.RegisterRequest) (*p
 
 func (h *UserHandler) RegisterValidate(ctx context.Context, req *pb.RegisterValidateRequest) (*pb.RegisterValidateResponse, error) {
 	user := domain.User{
-		Otp: req.Otp,
+		Otp:   req.Otp,
+		Email: req.Email,
 	}
 	user, err := h.UseCase.RegisterValidate(user)
 	if err != nil {
@@ -106,12 +107,13 @@ func (u *UserHandler) ForgotPassword(ctx context.Context, req *pb.ForgotPassword
 	}
 	return &pb.ForgotPasswordResponse{
 		Status: http.StatusOK,
+		Error:  "nil",
 	}, nil
 
 }
 func (u *UserHandler) ChangePassword(ctx context.Context, req *pb.ChangePasswordRequest) (*pb.ForgotPasswordResponse, error) {
 	user := domain.User{
-		Id:       uint(req.Id),
+		Email:    req.Email,
 		Password: req.Password,
 	}
 	err := u.UseCase.ChangePassword(user)
@@ -123,6 +125,7 @@ func (u *UserHandler) ChangePassword(ctx context.Context, req *pb.ChangePassword
 	}
 	return &pb.ForgotPasswordResponse{
 		Status: http.StatusOK,
+		Error:  "nil",
 	}, nil
 }
 
@@ -150,6 +153,7 @@ func (u *UserHandler) Validate(ctx context.Context, req *pb.ValidateRequest) (*p
 		Status: http.StatusOK,
 		Userid: int64(userData.Id),
 		Source: claims.Source,
+		Error:  "nil",
 	}, nil
 
 }
@@ -179,6 +183,7 @@ func (h *UserHandler) AdminLogin(ctx context.Context, req *pb.LoginRequest) (*pb
 	return &pb.LoginResponse{
 		Status:      http.StatusOK,
 		Accesstoken: accessToken,
+		Error:       "nil",
 	}, nil
 
 }

@@ -32,6 +32,7 @@ message RegisterRequest {
 
 message RegisterValidateRequest{
   string otp =1;
+  string email = 2;
 }
 
 message RegisterValidateResponse{
@@ -81,7 +82,7 @@ message ForgotPasswordResponse{
 // Change Password
 
 message ChangePasswordRequest{
-  int64  id = 1;
+  string email = 1;
   string password = 2;
 }
 
