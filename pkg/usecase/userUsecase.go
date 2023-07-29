@@ -52,7 +52,7 @@ func (u *userUseCase) Register(user domain.User) error {
 	user.Password = utility.HashPassword(user.Password)
 
 	// inserting avatar
-	user.Profile = "https://images-for-deliveryapp.s3.ap-south-1.amazonaws.com/avatar-ge80dc2e76_1920.png"
+	user.Profile = "https://images-for-deliveryapp.s3.ap-south-1.amazonaws.com/kindpng_786207.png"
 
 	// Creating the user
 	err = u.Repo.Create(user)
